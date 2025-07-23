@@ -1,15 +1,19 @@
 stages:
   - deploy
 
-deploy_app:
+deploy_to_vps:
   stage: deploy
-  tags:
-    - docker
+  image: alpine:latest
+
   before_script:
-    - echo "Start Deployment"
+    - apk add --no-cache openssh git docker-cli docker-compose
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $VPS_IP >> ~/.ssh/known_hosts
+
   script:
-    - export DOMAIN=jenkins.demo
-    - docker-compose down || true
-    - docker-compose up -d --build
+    - ssh $VPS_USER@$VPS_IP "cd $APP_DIR && git pull && docker compose down || true && docker compose --env-file .env up -d --build"
+
   only:
     - main
