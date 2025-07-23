@@ -1,0 +1,15 @@
+stages:
+  - deploy
+
+deploy_app:
+  stage: deploy
+  tags:
+    - docker
+  before_script:
+    - echo "Start Deployment"
+  script:
+    - export DOMAIN=jenkins.demo
+    - docker-compose down || true
+    - docker-compose up -d --build
+  only:
+    - main
